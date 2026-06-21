@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: #0B0F19;
+  --color-surface: #1A1F2C;
+  --color-glass: rgba(255, 255, 255, 0.05);
+  --color-glass-hover: rgba(255, 255, 255, 0.1);
+  --color-glass-border: rgba(255, 255, 255, 0.08);
+  --color-glass-border-hover: rgba(255, 255, 255, 0.15);
+  --color-primary: #F1F5F9;
+  --color-secondary: #94A3B8;
+  --color-accent: #F97316;
+  --color-accent-light: #FB923C;
+  --color-blue-accent: #3B82F6;
+  --color-green-accent: #10B981;
+  --color-danger: #EF4444;
+  --color-warning: #F59E0B;
+  --color-card-bg: rgba(255, 255, 255, 0.05);
+  --font-sans: "IBM Plex Sans Arabic", system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Sans Arabic", ui-monospace, monospace;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-primary);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+@keyframes mesh-drift {
+  0% { background-position: 0% 0%, 100% 100%, 50% 50%; }
+  33% { background-position: 30% 20%, 70% 80%, 20% 60%; }
+  66% { background-position: 60% 40%, 40% 30%, 80% 20%; }
+  100% { background-position: 20% 60%, 80% 20%, 40% 80%; }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(30px, -20px) scale(1.05); }
+}
+
+@keyframes float-slower {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-20px, 30px) scale(1.02); }
+}
+
+@keyframes shimmer {
+  0% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+  100% { opacity: 0.4; }
+}
+
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
