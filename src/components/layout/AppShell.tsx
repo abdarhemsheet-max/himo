@@ -19,7 +19,7 @@ export default function AppShell({ children, title, subtitle }: AppShellProps) {
     useAppStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(
-    () => window.matchMedia("(min-width: 1024px)").matches
+    () => typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches
   );
 
   useEffect(() => {

@@ -76,19 +76,64 @@ export default function DailyQuranPlan() {
           status: e.status,
         }));
 
-      const res = await fetch("/api/quran-plan", {
+      const apiKey = process.env.NEXT_PUBLIC_GROQ_API_KEY;
+      if (!apiKey) throw new Error("GROQ_API_KEY not configured");
+
+      const systemPrompt = `أنت مخطط قرآني خبير ومتخصص في تحليل مسار الحفظ.
+مهمتك:
+1. تحليل آخر 3 entries محفوظة للمستخدم
+2. فحص entries التي تحتاج مراجعة (due for review)
+3. إنشاء خطة يومية ذكية وشخصية بناءً على هذه البيانات
+
+تعليمات صارمة:
+- أخرج JSON ONLY بدون أي markdown أو نصوص خارجية
+- المفتاح "greeting" يجب أن يكون نصاً تشجيعياً قصيراً بالعربية يذكر أين توقف المستخدم
+- المفتاح "reviewTarget" يجب أن يحدد بالضبط السورة والآيات للمراجعة اليوم
+- المفتاح "newTarget" يجب أن يحدد الآيات التالية للحفظ
+- إذا كان المستخدم قد أنهى المراجعة لليوم (لا توجد dueForReview)، أخرج "reviewTarget": "لا توجد مراجعة اليوم ✓" واجعل "congratulatory": true
+- إذا لم يكن هناك entries بعد، أخرج رسالة ترحيبية واجعل "newTarget" يشير إلى سورة الفاتحة
+
+شكل JSON المطلوب:
+{
+  "greeting": "...",
+  "reviewTarget": "...",
+  "newTarget": { "surahId": number, "surahName": "...", "fromAyah": number, "toAyah": number },
+  "congratulatory": boolean
+}`;
+
+      const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ memorizedAyahs, dueForReview }),
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          messages: [
+            { role: "system", content: systemPrompt },
+            {
+              role: "user",
+              content: `هذه بيانات مسار الحفظ الخاصة بي:
+آخر ما تم حفظه:
+${JSON.stringify(memorizedAyahs, null, 2)}
+
+ما يحتاج مراجعة اليوم:
+${JSON.stringify(dueForReview, null, 2)}`,
+            },
+          ],
+          temperature: 0.7,
+          max_tokens: 512,
+        }),
       });
 
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || "Failed to fetch plan");
-      }
+      if (!groqRes.ok) throw new Error("Groq API error");
 
-      const data = await res.json();
-      setPlan(data);
+      const groqData = await groqRes.json();
+      const content = groqData.choices?.[0]?.message?.content;
+      if (!content) throw new Error("Empty response from Groq");
+
+      const planData = JSON.parse(content);
+      setPlan(planData);
     } catch (err) {
       setError(err instanceof Error ? err.message : "خطأ في الاتصال");
     } finally {

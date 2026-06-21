@@ -34,28 +34,61 @@ export default function SmartQuranAssistant() {
     setDoneIds(new Set());
 
     try {
-      const res = await fetch("/api/quran-assistant", {
+      const apiKey = process.env.NEXT_PUBLIC_GROQ_API_KEY;
+      if (!apiKey) throw new Error("GROQ_API_KEY not configured");
+
+      const systemPrompt = `أنت خبير متخصص في تحفيظ القرآن الكريم. حلل تقدم المستخدم وأجب بالعربية الفصحى.
+
+مهمتك:
+1. اقترح خطة مراجعة بناءً على الآيات التي تحتاج مراجعة
+2. اقترح آيات جديدة للحفظ بناءً على آخر ما حفظه المستخدم
+
+أخرج JSON فقط بهذا الشكل:
+{
+  "reviewPlan": [{ "surahName": "اسم السورة", "ayahs": "1-7" }],
+  "newMemorization": [{ "surahName": "اسم السورة", "startAyah": 1, "endAyah": 7 }]
+}
+
+يجب أن يكون المخرج JSON صالحاً فقط دون أي نص إضافي.`;
+
+      const userMessage = `التقدم الحالي:\n${
+        entries.map((p) => `- سورة ${surahNameMap[p.surahId] || `سورة ${p.surahId}`}: ${p.fromAyah}-${p.toAyah} (آخر مراجعة: ${p.lastReviewedDate})`).join("\n")
+      }\n\nيحتاج مراجعة:\n${
+        needsReview.map((p) => `- سورة ${surahNameMap[p.surahId] || `سورة ${p.surahId}`}: ${p.fromAyah}-${p.toAyah}`).join("\n")
+      }\n\nطلب المستخدم: ${userRequest.trim()}`;
+
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
         body: JSON.stringify({
-          currentProgress: entries.map((e) => ({
-            surahName: surahNameMap[e.surahId] || `سورة ${e.surahId}`,
-            ayahs: `${e.fromAyah}-${e.toAyah}`,
-            lastReviewed: e.lastReviewedDate,
-            nextReview: e.nextReviewDate,
-          })),
-          needsReview: needsReview.map((e) => ({
-            surahName: surahNameMap[e.surahId] || `سورة ${e.surahId}`,
-            ayahs: `${e.fromAyah}-${e.toAyah}`,
-            lastReviewed: e.lastReviewedDate,
-            nextReview: e.nextReviewDate,
-          })),
-          userRequest: userRequest.trim(),
+          model: "llama-3.1-8b-instant",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userMessage },
+          ],
+          temperature: 0.7,
+          max_tokens: 1024,
         }),
       });
-      if (!res.ok) throw new Error("API error");
+
+      if (!res.ok) throw new Error("Groq API error");
       const data = await res.json();
-      setPlan(data);
+      const content: string = data.choices?.[0]?.message?.content || "";
+      let parsed;
+      try {
+        parsed = JSON.parse(content);
+      } catch {
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          parsed = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error("Failed to parse AI response");
+        }
+      }
+      setPlan(parsed);
     } catch {
       setPlan(null);
     } finally {

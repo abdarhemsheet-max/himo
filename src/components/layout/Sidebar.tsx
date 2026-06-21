@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { usePathname, useParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Wallet,
@@ -42,21 +42,15 @@ export default function Sidebar({
   onMobileClose = () => {},
 }: SidebarProps) {
   const pathname = usePathname();
-  const params = useParams();
-  const locale = (params?.locale as string) || "ar";
 
   const getHref = (path: string) => {
-    if (path === "dashboard") return `/${locale}`;
-    return `/${locale}/${path}`;
+    if (path === "dashboard") return `/`;
+    return `/${path}`;
   };
 
   const isActive = (path: string) => {
-    if (path === "dashboard")
-      return pathname === `/${locale}` || pathname === "/";
-    return (
-      pathname.startsWith(`/${locale}/${path}`) ||
-      pathname.startsWith(`/${path}`)
-    );
+    if (path === "dashboard") return pathname === "/";
+    return pathname.startsWith(`/${path}`);
   };
 
   const sidebarContent = (

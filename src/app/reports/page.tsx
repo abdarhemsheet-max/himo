@@ -107,18 +107,76 @@ export default function ReportsPage() {
         };
 
     try {
-      const res = await fetch("/api/generate-report", {
+      const apiKey = process.env.NEXT_PUBLIC_GROQ_API_KEY;
+      if (!apiKey) throw new Error("GROQ_API_KEY not configured");
+
+      const systemPrompt = `أنت كاتب تقارير احترافي باللغة العربية الفصحى.
+مهمتك إنشاء تقارير أسبوعية/شهرية منظمة وجاهزة للطباعة.
+استخدم تنسيق Markdown نظيف مع عناوين وفقرات ونقاط.
+
+شكل التقرير الشخصي الأسبوعي:
+# التقرير الأسبوعي
+**الفترة:** [تاريخ]
+**تاريخ الإنشاء:** [تاريخ اليوم]
+
+## ملخص الإنجازات
+[فقرة عامة]
+
+## المهام المنجزة
+- [مهمة 1]
+- [مهمة 2]
+
+## المهام قيد التنفيذ
+- [مهمة]
+
+## الملاحظات والتوصيات
+[نصائح للأسبوع القادم]
+
+شكل تقرير الشركة الشهري:
+# تقرير [اسم الشركة] الشهري
+**الشهر:** [الشهر]
+**تاريخ الإنشاء:** [تاريخ اليوم]
+
+## ملخص الأداء
+[فقرة عامة]
+
+## الإنجازات
+- [إنجاز]
+
+## المهام والخدمات
+- [خدمة/مهمة]
+
+## التوصيات
+[توصيات]
+
+أخرج Markdown فقط بدون أي نص إضافي خارج التنسيق.`;
+
+      const userPrompt = type === "personal"
+        ? `بيانات الأسبوع:\n- الإنجازات: ${data.achievements || "لا توجد"}\n- المهام المتبقية: ${data.pendingTasks || "لا توجد"}\n- ملاحظات: ${data.notes || "بدون"}`
+        : `بيانات شركة "${data.companyName}":\n- الشهر: ${data.month || "الحالي"}\n- الإنجازات: ${data.achievements || "لا توجد"}\n- المهام: ${data.pendingTasks || "لا توجد"}\n- ملاحظات: ${data.notes || "بدون"}`;
+
+      const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type, data }),
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+          temperature: 0.7,
+          max_tokens: 2048,
+        }),
       });
 
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || "فشل في إنشاء التقرير");
-      }
+      if (!groqRes.ok) throw new Error("Groq API error");
 
-      const result = await res.json();
+      const groqData = await groqRes.json();
+      const markdown: string = groqData.choices?.[0]?.message?.content || "";
+      if (!markdown) throw new Error("Empty response from Groq");
 
       // Auto-archive to Documents Vault
       const now = new Date();
@@ -137,10 +195,10 @@ export default function ReportsPage() {
         expiryDate: nextYear.toISOString().slice(0, 10),
         description: `تم إنشاؤه في ${formatDate(now)}`,
         fileUrl: "",
-        size: `${result.markdown.length} حرف`,
+        size: `${markdown.length} حرف`,
       });
 
-      setReportMd(result.markdown);
+      setReportMd(markdown);
     } catch (err) {
       setError(err instanceof Error ? err.message : "خطأ في الاتصال");
     } finally {
