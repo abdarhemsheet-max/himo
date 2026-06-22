@@ -7,6 +7,7 @@ import { GlassCard, GlassButton } from "@/components/ui";
 import AddMemorizationModal from "@/components/quran/AddMemorizationModal";
 import { useQuranStore } from "@/store/quran.store";
 import { QURAN_SURAHS } from "@/lib/quran-surahs";
+import { logger } from "@/lib/logger";
 
 const surahNameMap = Object.fromEntries(QURAN_SURAHS.map((s) => [s.id, s.name]));
 
@@ -135,6 +136,7 @@ ${JSON.stringify(dueForReview, null, 2)}`,
       const planData = JSON.parse(content);
       setPlan(planData);
     } catch (err) {
+      logger.api.groq("daily quran plan", err);
       setError(err instanceof Error ? err.message : "خطأ في الاتصال");
     } finally {
       setLoading(false);

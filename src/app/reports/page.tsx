@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { GlassCard, GlassButton, GlassBadge } from "@/components/ui";
 import AppShell from "@/components/layout/AppShell";
+import { logger } from "@/lib/logger";
 import { useDocumentsStore } from "@/store/documents.store";
 import { useWorkspaceStore } from "@/store/workspace.store";
 
@@ -200,6 +201,7 @@ export default function ReportsPage() {
 
       setReportMd(markdown);
     } catch (err) {
+      logger.api.groq("generate report", err, { type, companyName: data.companyName });
       setError(err instanceof Error ? err.message : "خطأ في الاتصال");
     } finally {
       setLoading(false);

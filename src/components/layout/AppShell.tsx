@@ -1,11 +1,16 @@
 "use client";
 
 import { useState, useEffect, ReactNode } from "react";
+import dynamic from "next/dynamic";
 import { AnimatePresence } from "framer-motion";
+import { Loader2 } from "lucide-react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
-import MeshGradient from "./MeshGradient";
 import PageTransition from "../ui/PageTransition";
+
+const MeshGradient = dynamic(() => import("./MeshGradient"), { ssr: false });
+const CommandPalette = dynamic(() => import("../ui/CommandPalette"), { ssr: false });
+import { useInitializeApp } from "@/hooks/useInitializeApp";
 import { useAppStore } from "@/store/app.store";
 
 interface AppShellProps {
@@ -15,6 +20,7 @@ interface AppShellProps {
 }
 
 export default function AppShell({ children, title, subtitle }: AppShellProps) {
+  const { isLoading } = useInitializeApp();
   const { sidebarCollapsed, toggleSidebar, showBalance, toggleBalance } =
     useAppStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -32,6 +38,25 @@ export default function AppShell({ children, title, subtitle }: AppShellProps) {
   const sidebarWidth = sidebarCollapsed ? 72 : 256;
   const offset = isDesktop ? sidebarWidth : 0;
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0B0F19]">
+        <div className="text-center">
+          <div className="relative mx-auto mb-6 w-16 h-16">
+            <div className="absolute inset-0 rounded-full bg-accent/20 animate-ping" />
+            <div className="relative flex items-center justify-center w-16 h-16 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl">
+              <Loader2 size={24} className="text-accent-light animate-spin" />
+            </div>
+          </div>
+          <div className="space-y-3">
+            <div className="h-4 w-32 mx-auto bg-white/5 rounded-full animate-pulse" />
+            <div className="h-3 w-48 mx-auto bg-white/[0.03] rounded-full animate-pulse" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
       <MeshGradient />
@@ -42,6 +67,8 @@ export default function AppShell({ children, title, subtitle }: AppShellProps) {
         mobileOpen={mobileMenuOpen}
         onMobileClose={() => setMobileMenuOpen(false)}
       />
+
+      <CommandPalette />
 
       <div className="transition-all duration-300" style={{ marginInlineEnd: offset }}>
         <Header

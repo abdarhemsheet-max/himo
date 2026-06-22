@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   TrendingUp,
@@ -17,7 +17,12 @@ import WalletGrid from "@/components/finance/WalletGrid";
 import IncomeList from "@/components/finance/IncomeList";
 import ExpenseList from "@/components/finance/ExpenseList";
 import SubscriptionTable from "@/components/finance/SubscriptionTable";
-import AnalyticsChart from "@/components/finance/AnalyticsChart";
+import dynamic from "next/dynamic";
+
+const AnalyticsChart = dynamic(() => import("@/components/finance/AnalyticsChart"), {
+  ssr: false,
+  loading: () => <div className="h-80 rounded-2xl bg-white/5 animate-pulse" />,
+});
 import GlassModal from "@/components/ui/GlassModal";
 import GlassInput from "@/components/ui/GlassInput";
 import { CardSkeleton, TableSkeleton } from "@/components/ui/Skeleton";
@@ -136,7 +141,7 @@ const tabs = [
   { id: "analytics", label: "التحليلات" },
 ];
 
-const tabContent: Record<string, React.FC> = {
+const tabContent: Record<string, React.ComponentType> = {
   wallets: WalletGrid,
   income: IncomeList,
   expenses: ExpenseList,
@@ -182,7 +187,6 @@ export default function FinancePage() {
   const [formDate, setFormDate] = useState("");
   const [formCategory, setFormCategory] = useState("");
   const [formWalletId, setFormWalletId] = useState("");
-  const loadMockData = useFinanceStore((s) => s.loadMockData);
   const wallets = useFinanceStore((s) => s.wallets);
   const {
     addWallet,
@@ -196,10 +200,6 @@ export default function FinancePage() {
     totalSubscriptionsCost,
     isLoading,
   } = useFinanceStore();
-
-  useEffect(() => {
-    loadMockData();
-  }, [loadMockData]);
 
   const ActiveComponent = tabContent[activeTab];
   const addLabel = addButtonLabels[activeTab] || "";

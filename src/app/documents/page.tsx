@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, FileText, Plus } from "lucide-react";
 import { GlassCard, GlassBadge, GlassButton } from "@/components/ui";
@@ -19,14 +19,10 @@ const tagLabels: Record<string, string> = {
 };
 
 export default function DocumentsPage() {
-  const { documents, loadMockData } = useDocumentsStore();
+  const { documents } = useDocumentsStore();
   const [search, setSearch] = useState("");
   const [uploadOpen, setUploadOpen] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
-
-  useEffect(() => {
-    loadMockData();
-  }, [loadMockData]);
 
   const filtered = documents.filter(
     (doc) =>

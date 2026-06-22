@@ -6,6 +6,7 @@ import { Sparkles, Loader2, CheckCircle, Plus, Clock } from "lucide-react";
 import { GlassCard, GlassInput, GlassButton } from "@/components/ui";
 import { useQuranStore } from "@/store/quran.store";
 import { QURAN_SURAHS } from "@/lib/quran-surahs";
+import { logger } from "@/lib/logger";
 
 const surahNameMap = Object.fromEntries(QURAN_SURAHS.map((s) => [s.id, s.name]));
 
@@ -89,7 +90,8 @@ export default function SmartQuranAssistant() {
         }
       }
       setPlan(parsed);
-    } catch {
+    } catch (err) {
+      logger.api.groq("quran assistant plan", err);
       setPlan(null);
     } finally {
       setLoading(false);

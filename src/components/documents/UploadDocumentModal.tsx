@@ -225,7 +225,7 @@ export default function UploadDocumentModal({ open, onClose }: Props) {
           {captured ? (
             <div className="relative">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={captured} alt="captured" className="w-full h-auto max-h-[280px] object-contain" />
+              <img src={captured} alt="captured" loading="lazy" className="w-full h-auto max-h-[280px] object-contain" />
               <div className="flex justify-center gap-2 p-3">
                 <GlassButton variant="secondary" size="sm" onClick={handleRetake}>
                   <Camera size={14} />

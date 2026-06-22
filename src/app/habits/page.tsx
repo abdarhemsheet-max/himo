@@ -38,7 +38,7 @@ function getWeekDates(today: string) {
 export default function HabitsPage() {
   const {
     habits, todos, today,
-    loadMockData, addHabit, toggleHabit, deleteHabit,
+    addHabit, toggleHabit, deleteHabit,
     addTodo, toggleTodo, deleteTodo,
   } = useHabitsStore();
 
@@ -51,10 +51,9 @@ export default function HabitsPage() {
   const habitInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    loadMockData();
-    const timer = setInterval(() => setCountdown(toMidnightCountdown()), 60000);
-    return () => clearInterval(timer);
-  }, [loadMockData]);
+    const t = setInterval(() => setCountdown(toMidnightCountdown()), 60000);
+    return () => clearInterval(t);
+  }, []);
 
   const activeHabits = habits.filter((h) => h.active);
   const completedToday = activeHabits.filter((h) => h.completedDates.includes(today)).length;

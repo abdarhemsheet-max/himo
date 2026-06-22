@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { Plus } from "lucide-react";
 import { GlassButton } from "@/components/ui";
@@ -12,14 +12,10 @@ import { useCoursesStore } from "@/store/courses.store";
 import type { Course } from "@/types/courses";
 
 export default function CoursesPage() {
-  const { courses, selectedCourse, loadMockData, selectCourse } =
+  const { courses, selectedCourse, selectCourse } =
     useCoursesStore();
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
-
-  useEffect(() => {
-    loadMockData();
-  }, [loadMockData]);
 
   const handleCardClick = (course: Course) => {
     selectCourse(course);

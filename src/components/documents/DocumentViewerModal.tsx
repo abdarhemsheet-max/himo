@@ -137,6 +137,7 @@ export default function DocumentViewerModal({ document: doc, onClose }: Props) {
                   <img
                     src={previewContent}
                     alt={doc.name}
+                    loading="lazy"
                     className="w-full h-full object-contain max-h-[65vh]"
                   />
                 ) : isPdf ? (

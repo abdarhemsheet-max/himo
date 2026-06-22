@@ -36,7 +36,6 @@ function daysUntil(dateStr: string) {
 export default function QuranPage() {
   const {
     entries,
-    loadMockData,
     evaluateReviews,
     markAsReviewed,
     deleteMemorization,
@@ -46,7 +45,6 @@ export default function QuranPage() {
   const [zenMode, setZenMode] = useState(false);
 
   useEffect(() => {
-    loadMockData();
     evaluateReviews();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

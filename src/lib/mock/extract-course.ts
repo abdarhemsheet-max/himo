@@ -61,7 +61,6 @@ const courseTemplates = [
 ];
 
 export async function simulateCourseExtraction(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _url: string,
 ): Promise<Omit<Course, "id">> {
   await new Promise((r) => setTimeout(r, 1500));
